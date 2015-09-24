@@ -1,6 +1,4 @@
 #include "./RWLock.h"
-#include <Windows.h>
-#include <stdio.h>
 
 CRWLock::CRWLock  (void) : m_ActiveReaders(0), m_ActiveWriters(0) {}
 CRWLock::~CRWLock (void) {}
