@@ -4,7 +4,7 @@
 
 #include "./Task.h"
 #include "./Utilities/Mutex.h"
-#include "./Utilities/ContitionVariable.h"
+#include "./Utilities/ConditionVariable.h"
 
 class CPool
 {

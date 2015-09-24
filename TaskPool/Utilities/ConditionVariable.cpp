@@ -1,4 +1,4 @@
-#include "./ContitionVariable.h"
+#include "./ConditionVariable.h"
 
 CConditionVarible::CConditionVarible()
 {
