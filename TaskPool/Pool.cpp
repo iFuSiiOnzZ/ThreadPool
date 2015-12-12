@@ -38,7 +38,7 @@ void CPool::Init(unsigned int l_NumThreads)
     }
 }
 
-void CPool::AddTask(CTask *l_pTask)
+void CPool::AddTask(Task *l_pTask)
 {
     m_Mutex.Lock();
         m_pTasks.push_back(l_pTask);
@@ -62,7 +62,7 @@ DWORD CPool::MainThread(void)
 {
     while(m_ThreadRun)
     {
-        CTask *l_pTask = 0;
+        Task *l_pTask = 0;
 
         m_Mutex.Lock();
             while(m_pTasks.empty() && m_ThreadRun) m_CondVar.Sleep(m_Mutex.m_CriticalSection);
@@ -72,10 +72,7 @@ DWORD CPool::MainThread(void)
              m_pTasks.pop_front();
         m_Mutex.UnLock();
 
-        CTask *l_pDependencyTask = l_pTask->GetDependency();
-        if(l_pDependencyTask != 0) l_pDependencyTask->Execute();
-
-        l_pTask->Execute();
+        l_pTask->Function(l_pTask->Params);
         m_CondVarTaskFinished.Wake();
     }
 
