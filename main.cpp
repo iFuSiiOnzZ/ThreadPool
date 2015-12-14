@@ -46,12 +46,15 @@ int main(int argc, char **argv)
 
     t1.Params = new TaskParams<int>(1);
     t1.Function = te1.Execute01;
+    t1.Priority = Normal;
 
     t2.Params = new TaskParams<int, float>(1, 3.14f);
     t2.Function = te2.Execute02;
+    t2.Priority = Normal;
 
     t3.Params = new TaskParams<int, float, char *>(1, 3.14f, "Hola Mundo");
     t3.Function = Run;
+    t3.Priority = Normal;
 
     l_TaskPool.AddTask(&t1);
     l_TaskPool.AddTask(&t2);

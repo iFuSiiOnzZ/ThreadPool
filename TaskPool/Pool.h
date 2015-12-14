@@ -5,7 +5,17 @@
 #include "./Utilities/Mutex.h"
 #include "./Utilities/ConditionVariable.h"
 
+#define MAX_NORMAL_PRIORITY_TASK 128
+#define MAX_HIGH_PRIORITY_TASK 12
+#define MAX_LOW_PRIORITY_TASK 32
+
 #define entry_point static void
+
+#if _DEBUG
+#define ASSERT(x) if(!(x)){ int a = *((int *) 0); }
+#else
+#define ASSERT(x) {}
+#endif
 
 typedef void (*Function2Execute) (void *l_pTaskParams);
 typedef enum TaskPriority { Low, Normal, High } TaskPriority, *PTaskPriority;
@@ -19,7 +29,59 @@ typedef struct Task
     Function2Execute Function;
 } Task, *PTask;
 
-template <class T1 = int, class T2 = T1, class T3 = T1, class T4 = T1> struct TaskParams
+typedef struct TaskQueue
+{
+    PTask *Tasks;
+
+    unsigned int NumTasks;
+    unsigned int MaxTasks;
+
+    unsigned int Front;
+    unsigned int Rear;
+
+    TaskQueue(unsigned int l_NumTasks)
+    {
+        ASSERT(l_NumTasks > 0);
+        Tasks = (PTask *) malloc (sizeof(PTask) * l_NumTasks);
+
+        NumTasks = 0;
+        MaxTasks = l_NumTasks;
+
+        Front = 0;
+        Rear = 0;
+    }
+
+    ~TaskQueue()
+    {
+        ASSERT(Tasks != 0);
+        free(Tasks); Tasks = 0;
+    }
+
+    void push(PTask l_pTask)
+    {
+        ASSERT(Tasks != 0);
+        if((Rear + 1) % MaxTasks != Front)
+        {
+            Tasks[Rear++ % MaxTasks] = l_pTask;
+            NumTasks++;
+        }
+    }
+
+    PTask pop()
+    {
+        if(NumTasks > 0)
+        {
+            NumTasks--;
+            return Tasks[Front++ % MaxTasks];
+        }
+
+        return NULL;
+    }
+} TaskQueue, *PTaskQueue;
+
+typedef PTaskQueue TaskQueueFnc;
+
+template <class T1, class T2 = T1, class T3 = T1, class T4 = T1> struct TaskParams
 {
     T1 param1;
     T2 param2;
@@ -35,15 +97,22 @@ template <class T1 = int, class T2 = T1, class T3 = T1, class T4 = T1> struct Ta
 class CPool
 {
     private:
-        std::list<Task *>  m_pTasks;
+
+        TaskQueue m_NormalPriorityTask;
+        TaskQueue m_HighPriorityTask;
+        TaskQueue m_LowPriorityTask;
+
+        TaskQueueFnc m_TaskQueueFn[3];
+
         HANDLE              *m_pThreadsHandle;
+        bool                 m_ThreadRun;
 
-        unsigned int        m_NumOfTreads;
-        bool                m_ThreadRun;
+        unsigned int         m_NumOfTreads;
+        unsigned int         m_TaskInQueue;
 
-        CMutex              m_Mutex;
-        CConditionVarible   m_CondVar;
-        CConditionVarible   m_CondVarTaskFinished;
+        CMutex               m_Mutex;
+        CConditionVarible    m_CondVar;
+        CConditionVarible    m_CondVarTaskFinished;
 
     public:
         CPool  (void);
