@@ -66,16 +66,18 @@ DWORD WINAPI CPool::ThreadStart(void *l_pParam)
 
 DWORD CPool::MainThread(void)
 {
+    TaskPriority l_PopArrayPriority[MAX_TASK_PRIORITY_ARRAY] = { High, High, High, Normal, Normal, Low };
+    unsigned int l_PopIndex = 0;
+    PTask l_pTask = NULL;
+
     while(m_ThreadRun)
     {
-        Task *l_pTask = 0;
-
         m_Mutex.Lock();
             while(m_TaskInQueue == 0 && m_ThreadRun) m_CondVar.Sleep(m_Mutex.m_CriticalSection);
             if(!m_ThreadRun){ m_Mutex.UnLock(); return 0; }
             
-            l_pTask = m_TaskQueueFn[Normal]->pop();
-            m_TaskInQueue--;
+            l_pTask = m_TaskQueueFn[l_PopArrayPriority[l_PopIndex++ % MAX_TASK_PRIORITY_ARRAY]]->pop();
+            if(l_pTask) m_TaskInQueue--;
         m_Mutex.UnLock();
 
         if(l_pTask) l_pTask->Function(l_pTask->Params);

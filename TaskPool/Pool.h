@@ -10,6 +10,7 @@
 #define MAX_LOW_PRIORITY_TASK 32
 
 #define entry_point static void
+#define MAX_TASK_PRIORITY_ARRAY 6 // high, high, high, normal, normal, low
 
 #if _DEBUG
 #define ASSERT(x) if(!(x)){ int a = *((int *) 0); }
@@ -43,6 +44,7 @@ typedef struct TaskQueue
     {
         ASSERT(l_NumTasks > 0);
         Tasks = (PTask *) malloc (sizeof(PTask) * l_NumTasks);
+        ASSERT(Tasks != 0);
 
         NumTasks = 0;
         MaxTasks = l_NumTasks;
@@ -53,13 +55,11 @@ typedef struct TaskQueue
 
     ~TaskQueue()
     {
-        ASSERT(Tasks != 0);
         free(Tasks); Tasks = 0;
     }
 
     void push(PTask l_pTask)
     {
-        ASSERT(Tasks != 0);
         if((Rear + 1) % MaxTasks != Front)
         {
             Tasks[Rear++ % MaxTasks] = l_pTask;
