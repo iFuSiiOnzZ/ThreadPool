@@ -1,15 +1,11 @@
 #include "./Pool.h"
 
-CPool::CPool(void) : m_NormalPriorityTask(MAX_NORMAL_PRIORITY_TASK), m_HighPriorityTask(MAX_HIGH_PRIORITY_TASK), m_LowPriorityTask(MAX_LOW_PRIORITY_TASK)
+CPool::CPool(void)
 {
     m_pThreadsHandle = 0;
     m_ThreadRun = true;
 
     m_TaskInQueue = 0;
-
-    m_TaskQueueFn[Normal] = &m_NormalPriorityTask;
-    m_TaskQueueFn[High] = &m_HighPriorityTask;
-    m_TaskQueueFn[Low] = &m_LowPriorityTask;
 }
 
 CPool::~CPool(void)
@@ -46,7 +42,7 @@ void CPool::Init(unsigned int l_NumThreads)
 void CPool::AddTask(Task *l_pTask)
 {
     m_Mutex.Lock();
-        m_TaskQueueFn[l_pTask->Priority]->push(l_pTask);
+        m_Task.push(l_pTask);
         m_TaskInQueue++;
     m_Mutex.UnLock();
 
@@ -66,17 +62,15 @@ DWORD WINAPI CPool::ThreadStart(void *l_pParam)
 
 DWORD CPool::MainThread(void)
 {
-    TaskPriority l_PopArrayPriority[MAX_TASK_PRIORITY_ARRAY] = { High, High, High, Normal, Normal, Low };
-    unsigned int l_PopIndex = 0;
     PTask l_pTask = NULL;
 
     while(m_ThreadRun)
     {
         m_Mutex.Lock();
-            while(m_TaskInQueue == 0 && m_ThreadRun) m_CondVar.Sleep(m_Mutex.m_CriticalSection);
+            while(m_TaskInQueue == 0 && m_ThreadRun) m_CondVar.Sleep(m_Mutex);
             if(!m_ThreadRun){ m_Mutex.UnLock(); return 0; }
             
-            l_pTask = m_TaskQueueFn[l_PopArrayPriority[l_PopIndex++ % MAX_TASK_PRIORITY_ARRAY]]->pop();
+            l_pTask = m_Task.pop();
             if(l_pTask) m_TaskInQueue--;
         m_Mutex.UnLock();
 
@@ -90,6 +84,6 @@ DWORD CPool::MainThread(void)
 void CPool::WaitForWorkers(void)
 {
     m_Mutex.Lock();
-        while(m_TaskInQueue > 0) m_CondVarTaskFinished.Sleep(m_Mutex.m_CriticalSection);
+        while(m_TaskInQueue > 0) m_CondVarTaskFinished.Sleep(m_Mutex);
     m_Mutex.UnLock();
 }

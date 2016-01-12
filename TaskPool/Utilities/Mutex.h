@@ -4,11 +4,11 @@
 class CMutex
 {
     public:
-        CMutex  (void);
-        ~CMutex (void);
+        CMutex  (void) { InitializeCriticalSection(&m_CriticalSection); };
+        ~CMutex (void) { DeleteCriticalSection(&m_CriticalSection); };
 
-        void Lock   (void);
-        void UnLock (void);
+        void Lock   (void) { EnterCriticalSection(&m_CriticalSection); };
+        void UnLock (void) { LeaveCriticalSection(&m_CriticalSection); };
 
         CRITICAL_SECTION    m_CriticalSection;
 };

@@ -17,14 +17,50 @@ class CRWLock
         int m_WritersWaiting;
 
     public:
-        CRWLock  (void);
-        ~CRWLock (void);
+        CRWLock  (void) : m_ActiveReaders(0), m_ActiveWriters(0), m_WritersWaiting(0) {}
+        ~CRWLock (void) {}
 
-        void ReadLock    (void);
-        void ReadUnLock  (void);
+        void ReadLock(void)
+        {
+            m_Mutex.Lock();
+            while(m_ActiveWriters > 0)
+                m_Readers.Sleep(m_Mutex.m_CriticalSection);
 
-        void WriteLock   (void);
-        void WriteUnLock (void);
+            m_ActiveReaders++;
+            m_Mutex.UnLock();
+        }
+
+        void ReadUnLock(void)
+        {
+            m_Mutex.Lock();
+            m_ActiveReaders--;
+
+            if(m_WritersWaiting > 0 && m_ActiveReaders == 0) m_Writers.Wake();
+            m_Mutex.UnLock();
+        }
+
+        void WriteLock(void)
+        {
+            m_Mutex.Lock();
+            m_WritersWaiting++;
+
+            while (m_ActiveReaders > 0 || m_ActiveWriters > 0)
+                m_Writers.Sleep(m_Mutex.m_CriticalSection);
+
+            m_ActiveWriters++;
+            m_WritersWaiting--;
+            m_Mutex.UnLock();
+        }
+
+        void WriteUnLock(void)
+        {
+            m_Mutex.Lock();
+            m_ActiveWriters--;
+
+            if(m_WritersWaiting > 0) m_Writers.Wake();
+            else m_Readers.WakeAll();
+            m_Mutex.UnLock();
+        }
 };
 
 #endif 

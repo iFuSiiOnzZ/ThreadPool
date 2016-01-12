@@ -5,12 +5,7 @@
 #include "./Utilities/Mutex.h"
 #include "./Utilities/ConditionVariable.h"
 
-#define MAX_NORMAL_PRIORITY_TASK 128
-#define MAX_HIGH_PRIORITY_TASK 12
-#define MAX_LOW_PRIORITY_TASK 32
-
 #define entry_point static void
-#define MAX_TASK_PRIORITY_ARRAY 6 // high, high, high, normal, normal, low
 
 #if _DEBUG
 #define ASSERT(x) if(!(x)){ int a = *((int *) 0); }
@@ -30,56 +25,65 @@ typedef struct Task
     Function2Execute Function;
 } Task, *PTask;
 
+typedef struct NodeTask
+{
+    PTask TaskData;
+    struct NodeTask *NextTask;
+
+} NodeTask, *PNodeTask;
+
 typedef struct TaskQueue
 {
-    PTask *Tasks;
+    PNodeTask Front;
 
-    unsigned int NumTasks;
-    unsigned int MaxTasks;
-
-    unsigned int Front;
-    unsigned int Rear;
-
-    TaskQueue(unsigned int l_NumTasks)
+    TaskQueue() : Front(NULL)
     {
-        ASSERT(l_NumTasks > 0);
-        Tasks = (PTask *) malloc (sizeof(PTask) * l_NumTasks);
-        ASSERT(Tasks != 0);
-
-        NumTasks = 0;
-        MaxTasks = l_NumTasks;
-
-        Front = 0;
-        Rear = 0;
     }
 
     ~TaskQueue()
     {
-        free(Tasks); Tasks = 0;
+      
     }
 
     void push(PTask l_pTask)
     {
-        if((Rear + 1) % MaxTasks != Front)
+        PNodeTask l_NewTask = (PNodeTask) malloc (sizeof(NodeTask));
+        l_NewTask->TaskData = l_pTask;
+        l_NewTask->NextTask = NULL;
+
+        if(Front == NULL || l_pTask->Priority > Front->TaskData->Priority)
         {
-            Tasks[Rear++ % MaxTasks] = l_pTask;
-            NumTasks++;
+            l_NewTask->NextTask = Front;
+            Front = l_NewTask;
+        }
+        else
+        {
+            PNodeTask l_SearchTask = Front;
+            while(l_SearchTask->NextTask != NULL && l_pTask->Priority <= l_SearchTask->TaskData->Priority)
+            {
+                l_SearchTask = l_SearchTask->NextTask;
+            }
+
+            l_NewTask->NextTask = l_SearchTask->NextTask;;
+            l_SearchTask->NextTask = l_NewTask;
         }
     }
 
     PTask pop()
     {
-        if(NumTasks > 0)
+        if(Front == NULL)
         {
-            NumTasks--;
-            return Tasks[Front++ % MaxTasks];
+            return NULL;
         }
 
-        return NULL;
+        PTask l_Task = Front->TaskData;
+        PNodeTask l_Node = Front;
+        Front = Front->NextTask;
+
+        free(l_Node);
+        return l_Task;
     }
 } TaskQueue, *PTaskQueue;
-
-typedef PTaskQueue TaskQueueFnc;
 
 template <class T1, class T2 = T1, class T3 = T1, class T4 = T1> struct TaskParams
 {
@@ -98,12 +102,7 @@ class CPool
 {
     private:
 
-        TaskQueue m_NormalPriorityTask;
-        TaskQueue m_HighPriorityTask;
-        TaskQueue m_LowPriorityTask;
-
-        TaskQueueFnc m_TaskQueueFn[3];
-
+        TaskQueue            m_Task;
         HANDLE              *m_pThreadsHandle;
         bool                 m_ThreadRun;
 
