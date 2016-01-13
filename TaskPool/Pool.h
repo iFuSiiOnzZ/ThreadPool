@@ -97,6 +97,7 @@ class CPool
 
         unsigned int         m_NumOfTreads;
         unsigned int         m_TaskInQueue;
+        unsigned int         m_TaskToFinish;
 
         CMutex               m_Mutex;
         CConditionVarible    m_CondVar;

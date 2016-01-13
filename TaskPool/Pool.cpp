@@ -6,11 +6,11 @@ CPool::CPool(void)
     m_ThreadRun = true;
 
     m_TaskInQueue = 0;
+    m_TaskToFinish = 0;
 }
 
 CPool::~CPool(void)
 {
-    if(m_pThreadsHandle == 0) return;
     m_ThreadRun = false;
 
     m_CondVar.WakeAll();
@@ -28,10 +28,11 @@ CPool::~CPool(void)
 
 void CPool::Init(unsigned int l_NumThreads)
 {
-    if(l_NumThreads <= 0) return;
+    ASSERT(l_NumThreads > 0);
+    m_NumOfTreads = l_NumThreads;
 
     m_pThreadsHandle = (HANDLE *) malloc (l_NumThreads * sizeof(HANDLE));
-    m_NumOfTreads = l_NumThreads;
+    ASSERT(m_pThreadsHandle != NULL);
 
     for(unsigned int i = 0; i < l_NumThreads; ++i)
     {
@@ -44,6 +45,7 @@ void CPool::AddTask(Task *l_pTask)
     m_Mutex.Lock();
         m_Task.push(l_pTask);
         m_TaskInQueue++;
+        m_TaskToFinish++;
     m_Mutex.UnLock();
 
     m_CondVar.Wake();
@@ -71,10 +73,11 @@ DWORD CPool::MainThread(void)
             if(!m_ThreadRun){ m_Mutex.UnLock(); return 0; }
             
             l_pTask = m_Task.pop();
+            m_TaskInQueue--;
         m_Mutex.UnLock();
 
-        if(l_pTask) l_pTask->Function(l_pTask->Params);
-        m_Mutex.Lock(); if(l_pTask) m_TaskInQueue--; m_Mutex.UnLock();
+        l_pTask->Function(l_pTask->Params);
+        m_Mutex.Lock(); m_TaskToFinish--; m_Mutex.UnLock();
 
         m_CondVarTaskFinished.Wake();
     }
@@ -85,6 +88,6 @@ DWORD CPool::MainThread(void)
 void CPool::WaitForWorkers(void)
 {
     m_Mutex.Lock();
-        while(m_TaskInQueue > 0) m_CondVarTaskFinished.Sleep(m_Mutex);
+        while(m_TaskToFinish > 0) m_CondVarTaskFinished.Sleep(m_Mutex);
     m_Mutex.UnLock();
 }
