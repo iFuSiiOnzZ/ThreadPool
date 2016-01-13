@@ -8,7 +8,7 @@
 #define entry_point static void
 
 #if _DEBUG
-#define ASSERT(x) if(!(x)){ int a = *((int *) 0); }
+#define ASSERT(x) if(!(x)){ __asm{ int 3 } }
 #else
 #define ASSERT(x) {}
 #endif

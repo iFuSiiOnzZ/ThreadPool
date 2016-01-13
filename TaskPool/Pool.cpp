@@ -71,10 +71,11 @@ DWORD CPool::MainThread(void)
             if(!m_ThreadRun){ m_Mutex.UnLock(); return 0; }
             
             l_pTask = m_Task.pop();
-            if(l_pTask) m_TaskInQueue--;
         m_Mutex.UnLock();
 
         if(l_pTask) l_pTask->Function(l_pTask->Params);
+        m_Mutex.Lock(); if(l_pTask) m_TaskInQueue--; m_Mutex.UnLock();
+
         m_CondVarTaskFinished.Wake();
     }
 
