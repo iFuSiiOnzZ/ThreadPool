@@ -1,6 +1,7 @@
 #pragma once
 
 #include "./Mutex.h"
+#include "./RWLock.h"
 
 class CAutoLock
 {
@@ -35,8 +36,28 @@ class COptionalAutoLock
         {
             if(m_bAcquired)
             {
-                m_pLock->UnLock();
                 m_bAcquired = false;
+                m_pLock->UnLock();
             }
         }
+};
+
+class CRWReadAutoLock
+{
+    private:
+        CRWLock *m_pLock;
+
+    public:
+        CRWReadAutoLock  (CRWLock &l_Lock) : m_pLock(&l_Lock) { m_pLock->ReadLock(); }
+        ~CRWReadAutoLock (void) { m_pLock->ReadUnLock(); }
+};
+
+class CRWWriteAutoLock
+{
+    private:
+        CRWLock *m_pLock;
+
+    public:
+        CRWWriteAutoLock  (CRWLock &l_Lock) : m_pLock(&l_Lock) { m_pLock->WriteLock(); }
+        ~CRWWriteAutoLock (void) { m_pLock->WriteUnLock(); }
 };
