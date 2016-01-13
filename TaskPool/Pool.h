@@ -23,18 +23,13 @@ typedef struct Task
 
     void *Params;
     Function2Execute Function;
+    struct Task *NextTask;
 } Task, *PTask;
 
-typedef struct NodeTask
-{
-    PTask TaskData;
-    struct NodeTask *NextTask;
-
-} NodeTask, *PNodeTask;
 
 typedef struct TaskQueue
 {
-    PNodeTask Front;
+    PTask Front;
 
     TaskQueue() : Front(NULL)
     {
@@ -47,25 +42,21 @@ typedef struct TaskQueue
 
     void push(PTask l_pTask)
     {
-        PNodeTask l_NewTask = (PNodeTask) malloc (sizeof(NodeTask));
-        l_NewTask->TaskData = l_pTask;
-        l_NewTask->NextTask = NULL;
-
-        if(Front == NULL || l_pTask->Priority > Front->TaskData->Priority)
+        if(Front == NULL || l_pTask->Priority > Front->Priority)
         {
-            l_NewTask->NextTask = Front;
-            Front = l_NewTask;
+            l_pTask->NextTask = Front;
+            Front = l_pTask;
         }
         else
         {
-            PNodeTask l_SearchTask = Front;
-            while(l_SearchTask->NextTask != NULL && l_pTask->Priority <= l_SearchTask->TaskData->Priority)
+            PTask l_SearchTask = Front;
+            while(l_SearchTask->NextTask != NULL && l_pTask->Priority <= l_SearchTask->Priority)
             {
                 l_SearchTask = l_SearchTask->NextTask;
             }
 
-            l_NewTask->NextTask = l_SearchTask->NextTask;;
-            l_SearchTask->NextTask = l_NewTask;
+            l_pTask->NextTask = l_SearchTask->NextTask;;
+            l_SearchTask->NextTask = l_pTask;
         }
     }
 
@@ -76,11 +67,9 @@ typedef struct TaskQueue
             return NULL;
         }
 
-        PTask l_Task = Front->TaskData;
-        PNodeTask l_Node = Front;
+        PTask l_Task = Front;
         Front = Front->NextTask;
 
-        free(l_Node);
         return l_Task;
     }
 } TaskQueue, *PTaskQueue;
