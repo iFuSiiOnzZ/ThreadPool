@@ -24,7 +24,7 @@ class CRWLock
         {
             m_Mutex.Lock();
             while(m_ActiveWriters > 0)
-                m_Readers.Sleep(m_Mutex.m_CriticalSection);
+                m_Readers.Sleep(m_Mutex);
 
             m_ActiveReaders++;
             m_Mutex.UnLock();
@@ -45,7 +45,7 @@ class CRWLock
             m_WritersWaiting++;
 
             while (m_ActiveReaders > 0 || m_ActiveWriters > 0)
-                m_Writers.Sleep(m_Mutex.m_CriticalSection);
+                m_Writers.Sleep(m_Mutex);
 
             m_ActiveWriters++;
             m_WritersWaiting--;
