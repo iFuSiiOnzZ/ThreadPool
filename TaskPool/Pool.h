@@ -70,6 +70,7 @@ typedef struct TaskQueue
         PTask l_Task = Front;
         Front = Front->NextTask;
 
+        l_Task->NextTask = NULL;
         return l_Task;
     }
 } TaskQueue, *PTaskQueue;

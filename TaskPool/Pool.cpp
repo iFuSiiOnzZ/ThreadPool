@@ -37,6 +37,7 @@ void CPool::Init(unsigned int l_NumThreads)
     for(unsigned int i = 0; i < l_NumThreads; ++i)
     {
         *(m_pThreadsHandle + i) = CreateThread(NULL, 0, &CPool::ThreadStart, (void *) this, 0, 0);
+        ASSERT(*(m_pThreadsHandle + i) != NULL);
     }
 }
 
@@ -44,9 +45,10 @@ void CPool::AddTask(Task *l_pTask)
 {
     m_Mutex.Lock();
         m_Task.push(l_pTask);
-        m_TaskInQueue++;
-        m_TaskToFinish++;
     m_Mutex.UnLock();
+
+    InterlockedCompareExchange((long volatile *) &m_TaskToFinish, m_TaskToFinish + 1, m_TaskToFinish);
+    InterlockedCompareExchange((long volatile *) &m_TaskInQueue, m_TaskInQueue + 1, m_TaskInQueue);
 
     m_CondVar.Wake();
 }
@@ -73,11 +75,11 @@ DWORD CPool::MainThread(void)
             if(!m_ThreadRun){ m_Mutex.UnLock(); return 0; }
             
             l_pTask = m_Task.pop();
-            m_TaskInQueue--;
         m_Mutex.UnLock();
 
+        InterlockedCompareExchange((long volatile *) &m_TaskInQueue, m_TaskInQueue - 1, m_TaskInQueue);
         l_pTask->Function(l_pTask->Params);
-        m_Mutex.Lock(); m_TaskToFinish--; m_Mutex.UnLock();
+        InterlockedCompareExchange((long volatile *) &m_TaskToFinish, m_TaskToFinish - 1, m_TaskToFinish);
 
         m_CondVarTaskFinished.Wake();
     }
