@@ -1,10 +1,16 @@
 #!/bin/bash
 
 ## App Name
-AppName='-o server'
+AppName='pool_test'
 
 ## Compiler
 CC='g++'
+
+## Defines
+Defines='-D__DEBUG'
+
+## Flags
+Flags='-O3'
 
 ## Libs
 Libs='-lpthread'
@@ -13,4 +19,4 @@ Libs='-lpthread'
 SRCFiles=`find -not -path '*windows*' -regex '.*/.*\.\(c\|cpp\|h\)$' -print0 | xargs -0`
 
 ## Compile
-eval "$CC $AppName $Libs $SRCFiles"
+eval "$CC $Flags -o $AppName $Defines $Libs $SRCFiles"

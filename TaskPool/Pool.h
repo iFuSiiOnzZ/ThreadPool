@@ -1,10 +1,13 @@
-#pragma once
+
+#ifndef _POOLH_
+#define _POOLH_
 
 #if _WIN32
     #include <Windows.h>
     #include "utilities\windows\Mutex.h"
     #include "utilities\windows\ConditionVariable.h"
 #elif __linux__
+    #include <pthread.h>
     #include "./utilities/linux/Mutex.h"
     #include "./utilities/linux/ConditionVariable.h"
 #else
@@ -12,32 +15,60 @@
 #endif
 
 #if _WIN32
+     typedef HANDLE THREAD_HANDLE;
+     typedef DWORD WINAPI pool_thread_start;
+
     inline int AtomicAdd(volatile unsigned int *Point2Var, int NewValue, int OldValue)
     {
         return InterlockedCompareExchange(Point2Var, NewValue, OldValue);
     }
     
-    typedef HANDLE THREAD_HANDLE;
+    inline THREAD_HANDLE PoolThreadStart(void * (* l_Function)(void *), void *l_Class)
+    {
+        THREAD_HANDLE l_ThreadHandle = 0;
+        l_ThreadHandle = CreateThread(NULL, 0, l_Function, l_Class, 0, 0);
+        
+        return l_ThreadHandle;
+    }
+    
+    inline void PoolThreadStop(THREAD_HANDLE l_Handle)
+    {
+        CloseHandle(l_Handle);
+    }
 #elif __linux__
+    typedef pthread_t THREAD_HANDLE;
+    typedef void * pool_thread_start;
+    
     inline int AtomicAdd(volatile unsigned int *Point2Var, int NewValue, int OldValue)
     {
         return __sync_val_compare_and_swap(Point2Var, OldValue, NewValue);
     }
     
-    typedef pthread_t THREAD_HANDLE;
+    inline THREAD_HANDLE PoolThreadStart(void * (* l_Function)(void *), void *l_Class)
+    {
+        THREAD_HANDLE l_ThreadHandle = 0;
+        pthread_create(&l_ThreadHandle, 0, l_Function, l_Class);
+        
+        return l_ThreadHandle;
+    }
+    
+    inline void PoolThreadStop(THREAD_HANDLE l_Handle)
+    {
+        pthread_join(l_Handle, 0);
+    }
 #else
-#error No free lock functions available.
+    #error No multithread functions available.
 #endif
 
 #define entry_point static void
 
 #if _DEBUG
-#define ASSERT(x) if(!(x)){ __asm{ int 3 } }
+    #define ASSERT(x) if(!(x)){ __asm{ int 3 } }
 #else
-#define ASSERT(x) {}
+    #define ASSERT(x) {}
 #endif
 
-typedef void (*Function2Execute) (void *l_pTaskParams);
+typedef void (* Function2Execute) (void *l_pTaskParams);
 typedef enum TaskPriority { Low, Normal, High } TaskPriority, *PTaskPriority;
 
 typedef struct Task
@@ -138,6 +169,8 @@ class CPool
         void                ThreadStop      (void);
         void                WaitForWorkers  (void);
 
-        unsigned int        MainThread     (void);
-        static DWORD WINAPI ThreadStart    (void *l_pParam);
+        void                       MainThread     (void);
+        static pool_thread_start   ThreadStart    (void *l_pParam);
 };
+#endif
+

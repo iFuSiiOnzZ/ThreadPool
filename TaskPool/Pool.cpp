@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "./Pool.h"
 
 CPool::CPool(void)
@@ -15,11 +16,11 @@ CPool::~CPool(void)
 
     m_CondVar.WakeAll();
     m_CondVarTaskFinished.WakeAll();
-    WaitForMultipleObjects(m_NumOfTreads, m_pThreadsHandle, true, INFINITE);
+    //WaitForMultipleObjects(m_NumOfTreads, m_pThreadsHandle, true, INFINITE);
 
     for(unsigned int i = 0; i < m_NumOfTreads; ++i)
     {
-        CloseHandle(*(m_pThreadsHandle + i));
+        PoolThreadStop(*(m_pThreadsHandle + i));
     }
 
     free(m_pThreadsHandle);
@@ -31,12 +32,12 @@ void CPool::Init(unsigned int l_NumThreads)
     ASSERT(l_NumThreads > 0);
     m_NumOfTreads = l_NumThreads;
 
-    m_pThreadsHandle = (HANDLE *) malloc (l_NumThreads * sizeof(HANDLE));
+    m_pThreadsHandle = (THREAD_HANDLE *) malloc (l_NumThreads * sizeof(THREAD_HANDLE));
     ASSERT(m_pThreadsHandle != NULL);
 
     for(unsigned int i = 0; i < l_NumThreads; ++i)
     {
-        *(m_pThreadsHandle + i) = CreateThread(NULL, 0, &CPool::ThreadStart, (void *) this, 0, 0);
+        *(m_pThreadsHandle + i) = PoolThreadStart(&CPool::ThreadStart, (void *) this);
         ASSERT(*(m_pThreadsHandle + i) != NULL);
     }
 }
@@ -58,13 +59,15 @@ void CPool::ThreadStop(void)
     m_ThreadRun = false;
 }
 
-DWORD WINAPI CPool::ThreadStart(void *l_pParam)
+pool_thread_start CPool::ThreadStart(void *l_pParam)
 {
     CPool *refToThis = (CPool *) l_pParam;
-    return refToThis->MainThread();
+    refToThis->MainThread();
+    
+    return 0;
 }
 
-unsigned int CPool::MainThread(void)
+void CPool::MainThread(void)
 {
     PTask l_pTask = NULL;
 
@@ -72,7 +75,7 @@ unsigned int CPool::MainThread(void)
     {
         m_Mutex.Lock();
             while(m_TaskInQueue == 0 && m_ThreadRun) m_CondVar.Sleep(m_Mutex);
-            if(!m_ThreadRun){ m_Mutex.UnLock(); return 0; }
+            if(!m_ThreadRun){ m_Mutex.UnLock(); return; }
 
             l_pTask = m_Task.pop();
         m_Mutex.UnLock();
@@ -83,8 +86,6 @@ unsigned int CPool::MainThread(void)
 
         m_CondVarTaskFinished.Wake();
     }
-
-    return 0;
 }
 
 void CPool::WaitForWorkers(void)

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _THREADLOCK_
+#define _THREADLOCK_
 
 #include "RWLock.h"
 
@@ -70,3 +71,5 @@ class CRWWriteAutoLock
         CRWWriteAutoLock  (CRWLock &l_Lock) : m_pLock(&l_Lock) { m_pLock->WriteLock(); }
         ~CRWWriteAutoLock (void) { m_pLock->WriteUnLock(); }
 };
+#endif
+

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _CONDITIONVARIABLEH_
+#define _CONDITIONVARIABLEH_
+
 #include <pthread.h>
 #include "./Mutex.h"
 
@@ -15,3 +17,5 @@ class CConditionVarible
 
         pthread_cond_t   m_ConditionVariable;
 };
+#endif
+

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _MUTEXH_
+#define _MUTEXH_
+
 #include <pthread.h>
 
 class CMutex
@@ -12,3 +14,5 @@ class CMutex
 
         pthread_mutex_t    m_CriticalSection;
 };
+#endif
+

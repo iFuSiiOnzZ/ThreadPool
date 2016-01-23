@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _RWLOCKH_
+#define _RWLOCKH_
 
 #if _WIN32
     #include "windows\Mutex.h"
@@ -67,3 +68,5 @@ class CRWLock
             m_Mutex.UnLock();
         }
 };
+#endif
+
