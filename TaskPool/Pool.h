@@ -1,9 +1,33 @@
 #pragma once
-#include <list>
-#include <Windows.h>
 
-#include "./Utilities/Mutex.h"
-#include "./Utilities/ConditionVariable.h"
+#if _WIN32
+    #include <Windows.h>
+    #include "utilities\windows\Mutex.h"
+    #include "utilities\windows\ConditionVariable.h"
+#elif __linux__
+    #include "utilities\linux\Mutex.h"
+    #include "utilities\linux\ConditionVariable.h"
+#else
+    #error Mutex and ConditionVariable not found.
+#endif
+
+#if _WIN32
+
+inline int AtomicAdd(volatile unsigned int *Point2Var, int NewValue, int OldValue)
+{
+    return InterlockedCompareExchange(Point2Var, NewValue, OldValue);
+}
+
+#elif __linux__
+
+inline int AtomicAdd(volatile unsigned int *Point2Var, int NewValue, int OldValue)
+{
+    return __sync_val_compare_and_swap(Point2Var, OldValue, NewValue);
+}
+
+#else
+#error No free lock functions available.
+#endif
 
 #define entry_point static void
 
@@ -114,6 +138,6 @@ class CPool
         void                ThreadStop      (void);
         void                WaitForWorkers  (void);
 
-        DWORD                MainThread     (void);
-        static DWORD WINAPI  ThreadStart    (void *l_pParam);
+        unsigned int        MainThread     (void);
+        static DWORD WINAPI ThreadStart    (void *l_pParam);
 };

@@ -1,9 +1,14 @@
 #pragma once
-#ifndef AH_RWLOCK_
-#define AH_RWLOCK_
 
-#include "./Mutex.h"
-#include "./ConditionVariable.h"
+#if _WIN32
+    #include "windows\Mutex.h"
+    #include "windows\ConditionVariable.h"
+#elif __linux__
+    #include "linux\Mutex.h"
+    #include "linux\ConditionVariable.h"
+#else
+    #error Mutex and ConditionVariable not found.
+#endif
 
 class CRWLock
 {
@@ -62,5 +67,3 @@ class CRWLock
             m_Mutex.UnLock();
         }
 };
-
-#endif 

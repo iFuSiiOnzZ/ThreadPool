@@ -1,7 +1,16 @@
 #pragma once
 
-#include "./Mutex.h"
-#include "./RWLock.h"
+#include "RWLock.h"
+
+#if _WIN32
+    #include "windows\Mutex.h"
+    #include "windows\ConditionVariable.h"
+#elif __linux__
+    #include "linux\Mutex.h"
+    #include "linux\ConditionVariable.h"
+#else
+    #error Mutex and ConditionVariable not found.
+#endif
 
 class CAutoLock
 {

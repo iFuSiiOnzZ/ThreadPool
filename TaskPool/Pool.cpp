@@ -47,8 +47,8 @@ void CPool::AddTask(Task *l_pTask)
         m_Task.push(l_pTask);
     m_Mutex.UnLock();
 
-    InterlockedCompareExchange((long volatile *) &m_TaskToFinish, m_TaskToFinish + 1, m_TaskToFinish);
-    InterlockedCompareExchange((long volatile *) &m_TaskInQueue, m_TaskInQueue + 1, m_TaskInQueue);
+    AtomicAdd(&m_TaskToFinish, m_TaskToFinish + 1, m_TaskToFinish);
+    AtomicAdd(&m_TaskInQueue, m_TaskInQueue + 1, m_TaskInQueue);
 
     m_CondVar.Wake();
 }
@@ -64,7 +64,7 @@ DWORD WINAPI CPool::ThreadStart(void *l_pParam)
     return refToThis->MainThread();
 }
 
-DWORD CPool::MainThread(void)
+unsigned int CPool::MainThread(void)
 {
     PTask l_pTask = NULL;
 
@@ -73,13 +73,13 @@ DWORD CPool::MainThread(void)
         m_Mutex.Lock();
             while(m_TaskInQueue == 0 && m_ThreadRun) m_CondVar.Sleep(m_Mutex);
             if(!m_ThreadRun){ m_Mutex.UnLock(); return 0; }
-            
+
             l_pTask = m_Task.pop();
         m_Mutex.UnLock();
 
-        InterlockedCompareExchange((long volatile *) &m_TaskInQueue, m_TaskInQueue - 1, m_TaskInQueue);
+        AtomicAdd(&m_TaskInQueue, m_TaskInQueue - 1, m_TaskInQueue);
         l_pTask->Function(l_pTask->Params);
-        InterlockedCompareExchange((long volatile *) &m_TaskToFinish, m_TaskToFinish - 1, m_TaskToFinish);
+        AtomicAdd(&m_TaskToFinish, m_TaskToFinish - 1, m_TaskToFinish);
 
         m_CondVarTaskFinished.Wake();
     }
