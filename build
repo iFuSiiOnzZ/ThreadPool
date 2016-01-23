@@ -1,0 +1,16 @@
+#!/bin/bash
+
+## App Name
+AppName='-o server'
+
+## Compiler
+CC='g++'
+
+## Libs
+Libs='-lpthread'
+
+## Source files
+SRCFiles=`find -not -path '*windows*' -regex '.*/.*\.\(c\|cpp\|h\)$' -print0 | xargs -0`
+
+## Compile
+eval "$CC $AppName $Libs $SRCFiles"

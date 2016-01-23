@@ -31,7 +31,7 @@ entry_point Run(void *l_pTaskParams)
 
 int main(int argc, char **argv)
 {
-    CPool l_TaskPool;
+    /*CPool l_TaskPool;
     SYSTEM_INFO l_SystemInfo;
 
     GetSystemInfo(&l_SystemInfo);
@@ -60,8 +60,9 @@ int main(int argc, char **argv)
     l_TaskPool.AddTask(&t2);
     l_TaskPool.AddTask(&t3);
 
-    l_TaskPool.WaitForWorkers();
+    l_TaskPool.WaitForWorkers();*/
     printf("Main Thread Wait\n");
+    
 
     getchar();
     return EXIT_SUCCESS;

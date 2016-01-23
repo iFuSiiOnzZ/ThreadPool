@@ -6,8 +6,8 @@
     #include "windows\Mutex.h"
     #include "windows\ConditionVariable.h"
 #elif __linux__
-    #include "linux\Mutex.h"
-    #include "linux\ConditionVariable.h"
+    #include "./linux/Mutex.h"
+    #include "./linux/ConditionVariable.h"
 #else
     #error Mutex and ConditionVariable not found.
 #endif

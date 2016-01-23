@@ -5,26 +5,26 @@
     #include "utilities\windows\Mutex.h"
     #include "utilities\windows\ConditionVariable.h"
 #elif __linux__
-    #include "utilities\linux\Mutex.h"
-    #include "utilities\linux\ConditionVariable.h"
+    #include "./utilities/linux/Mutex.h"
+    #include "./utilities/linux/ConditionVariable.h"
 #else
     #error Mutex and ConditionVariable not found.
 #endif
 
 #if _WIN32
-
-inline int AtomicAdd(volatile unsigned int *Point2Var, int NewValue, int OldValue)
-{
-    return InterlockedCompareExchange(Point2Var, NewValue, OldValue);
-}
-
+    inline int AtomicAdd(volatile unsigned int *Point2Var, int NewValue, int OldValue)
+    {
+        return InterlockedCompareExchange(Point2Var, NewValue, OldValue);
+    }
+    
+    typedef HANDLE THREAD_HANDLE;
 #elif __linux__
-
-inline int AtomicAdd(volatile unsigned int *Point2Var, int NewValue, int OldValue)
-{
-    return __sync_val_compare_and_swap(Point2Var, OldValue, NewValue);
-}
-
+    inline int AtomicAdd(volatile unsigned int *Point2Var, int NewValue, int OldValue)
+    {
+        return __sync_val_compare_and_swap(Point2Var, OldValue, NewValue);
+    }
+    
+    typedef pthread_t THREAD_HANDLE;
 #else
 #error No free lock functions available.
 #endif
@@ -109,7 +109,7 @@ template <class T1, class T2 = T1, class T3 = T1, class T4 = T1> struct TaskPara
     TaskParams(T1 p1) : param1(p1) { }
     TaskParams(T1 p1, T2 p2) : param1(p1), param2(p2) { }
     TaskParams(T1 p1, T2 p2, T3 p3) : param1(p1), param2(p2), param3(p3) { }
-    TaskParams(T1 p1, T2 p2, T3 p3, T4) : param1(p1), param2(p2), param3(p3), param4(p4) { }
+    TaskParams(T1 p1, T2 p2, T3 p3, T4 p4) : param1(p1), param2(p2), param3(p3), param4(p4) { }
 };
 
 class CPool
@@ -117,7 +117,7 @@ class CPool
     private:
 
         TaskQueue            m_Task;
-        HANDLE              *m_pThreadsHandle;
+        THREAD_HANDLE       *m_pThreadsHandle;
         bool                 m_ThreadRun;
 
         unsigned int         m_NumOfTreads;

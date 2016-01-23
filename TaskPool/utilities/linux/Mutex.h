@@ -1,5 +1,4 @@
-#include "./Mutex.h"
-
+#pragma once
 #include <pthread.h>
 
 class CMutex
