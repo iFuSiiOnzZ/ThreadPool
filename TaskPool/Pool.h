@@ -17,6 +17,7 @@
 #if _WIN32
     typedef HANDLE THREAD_HANDLE;
     #define pool_thread_start DWORD WINAPI
+    #define break_point asm{ int 3 }
    
     inline int AtomicAdd(volatile unsigned int *Point2Var, int NewValue, int OldValue)
     {
@@ -37,7 +38,8 @@
     }
 #elif __linux__
     typedef pthread_t THREAD_HANDLE;
-    #define pool_thread_start void *;
+    #define pool_thread_start void *
+    #define break_point asm("int3")
     
     inline int AtomicAdd(volatile unsigned int *Point2Var, int NewValue, int OldValue)
     {
@@ -63,7 +65,7 @@
 #define entry_point static void
 
 #if _DEBUG
-    #define ASSERT(x) if(!(x)){ __asm{ int 3 } }
+    #define ASSERT(x) if(!(x)){ break_point; }
 #else
     #define ASSERT(x) {}
 #endif

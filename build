@@ -7,7 +7,7 @@ AppName='pool_test'
 CC='g++'
 
 ## Defines
-Defines='-D__DEBUG'
+Defines='-D_DEBUG'
 
 ## Flags
 Flags='-O3'
