@@ -15,15 +15,15 @@
 #endif
 
 #if _WIN32
-     typedef HANDLE THREAD_HANDLE;
-     typedef DWORD WINAPI pool_thread_start;
-
+    typedef HANDLE THREAD_HANDLE;
+    #define pool_thread_start DWORD WINAPI
+   
     inline int AtomicAdd(volatile unsigned int *Point2Var, int NewValue, int OldValue)
     {
         return InterlockedCompareExchange(Point2Var, NewValue, OldValue);
     }
     
-    inline THREAD_HANDLE PoolThreadStart(void * (* l_Function)(void *), void *l_Class)
+    inline THREAD_HANDLE PoolThreadStart(LPTHREAD_START_ROUTINE l_Function, void *l_Class)
     {
         THREAD_HANDLE l_ThreadHandle = 0;
         l_ThreadHandle = CreateThread(NULL, 0, l_Function, l_Class, 0, 0);
@@ -37,7 +37,7 @@
     }
 #elif __linux__
     typedef pthread_t THREAD_HANDLE;
-    typedef void * pool_thread_start;
+    #define pool_thread_start void *;
     
     inline int AtomicAdd(volatile unsigned int *Point2Var, int NewValue, int OldValue)
     {
