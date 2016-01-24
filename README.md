@@ -16,6 +16,23 @@ typedef struct Task
 } Task, *PTask;
 ```
 
+TaskParams, small templated class that allows you to pass any kind of information we need to the executed function.
+For now only allow a maxim of 4 different type of parameters, but if you need more add a new type and create an new constructor.
+```
+template <class T1, class T2 = T1, class T3 = T1, class T4 = T1> struct TaskParams
+{
+    T1 param1;
+    T2 param2;
+    T3 param3;
+    T4 param4;
+
+    TaskParams(T1 p1) : param1(p1) { }
+    TaskParams(T1 p1, T2 p2) : param1(p1), param2(p2) { }
+    TaskParams(T1 p1, T2 p2, T3 p3) : param1(p1), param2(p2), param3(p3) { }
+    TaskParams(T1 p1, T2 p2, T3 p3, T4 p4) : param1(p1), param2(p2), param3(p3), param4(p4) { }
+};
+```
+
 ## Basic usage
 
 With a class
