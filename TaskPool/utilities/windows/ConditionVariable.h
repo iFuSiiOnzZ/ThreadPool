@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _CONDITIONVARIABLEH_
+#define _CONDITIONVARIABLEH_
+
 #include "Mutex.h"
 #include <Windows.h>
 
@@ -15,3 +17,5 @@ class CConditionVarible
 
         CONDITION_VARIABLE m_ConditionVariable;
 };
+
+#endif

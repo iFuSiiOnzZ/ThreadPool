@@ -1,75 +1,9 @@
-
 #ifndef _POOLH_
 #define _POOLH_
 
-#if _WIN32
-    #include <Windows.h>
-    #include "utilities\windows\Mutex.h"
-    #include "utilities\windows\ConditionVariable.h"
-#elif __linux__
-    #include <pthread.h>
-    #include "./utilities/linux/Mutex.h"
-    #include "./utilities/linux/ConditionVariable.h"
-#else
-    #error Mutex and ConditionVariable not found.
-#endif
-
-#if _WIN32
-    typedef HANDLE THREAD_HANDLE;
-    #define pool_thread_start DWORD WINAPI
-    #define break_point asm{ int 3 }
-   
-    inline int AtomicAdd(volatile unsigned int *Point2Var, int NewValue, int OldValue)
-    {
-        return InterlockedCompareExchange(Point2Var, NewValue, OldValue);
-    }
-    
-    inline THREAD_HANDLE PoolThreadStart(LPTHREAD_START_ROUTINE l_Function, void *l_Class)
-    {
-        THREAD_HANDLE l_ThreadHandle = 0;
-        l_ThreadHandle = CreateThread(NULL, 0, l_Function, l_Class, 0, 0);
-        
-        return l_ThreadHandle;
-    }
-    
-    inline void PoolThreadStop(THREAD_HANDLE l_Handle)
-    {
-        CloseHandle(l_Handle);
-    }
-#elif __linux__
-    typedef pthread_t THREAD_HANDLE;
-    #define pool_thread_start void *
-    #define break_point asm("int3")
-    
-    inline int AtomicAdd(volatile unsigned int *Point2Var, int NewValue, int OldValue)
-    {
-        return __sync_val_compare_and_swap(Point2Var, OldValue, NewValue);
-    }
-    
-    inline THREAD_HANDLE PoolThreadStart(void * (* l_Function)(void *), void *l_Class)
-    {
-        THREAD_HANDLE l_ThreadHandle = 0;
-        pthread_create(&l_ThreadHandle, 0, l_Function, l_Class);
-        
-        return l_ThreadHandle;
-    }
-    
-    inline void PoolThreadStop(THREAD_HANDLE l_Handle)
-    {
-        pthread_join(l_Handle, 0);
-    }
-#else
-    #error No multithread functions available.
-#endif
+#include "Platform.h"
 
 #define entry_point static void
-
-#if _DEBUG
-    #define ASSERT(x) if(!(x)){ break_point; }
-#else
-    #define ASSERT(x) {}
-#endif
-
 typedef void (* Function2Execute) (void *l_pTaskParams);
 typedef enum TaskPriority { Low, Normal, High } TaskPriority, *PTaskPriority;
 

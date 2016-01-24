@@ -33,12 +33,12 @@ void CPool::Init(unsigned int l_NumThreads)
     m_NumOfTreads = l_NumThreads;
 
     m_pThreadsHandle = (THREAD_HANDLE *) malloc (l_NumThreads * sizeof(THREAD_HANDLE));
-    ASSERT(m_pThreadsHandle != NULL);
+    ASSERT(m_pThreadsHandle);
 
     for(unsigned int i = 0; i < l_NumThreads; ++i)
     {
         *(m_pThreadsHandle + i) = PoolThreadStart(&CPool::ThreadStart, (void *) this);
-        ASSERT(*(m_pThreadsHandle + i) != NULL);
+        ASSERT(*(m_pThreadsHandle + i));
     }
 }
 

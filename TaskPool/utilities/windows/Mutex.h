@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _MUTEXH_
+#define _MUTEXH_
+
 #include <Windows.h>
 
 class CMutex
@@ -12,3 +14,4 @@ class CMutex
 
         CRITICAL_SECTION    m_CriticalSection;
 };
+#endif
