@@ -16,7 +16,7 @@ CPool::~CPool(void)
 
     m_CondVar.WakeAll();
     m_CondVarTaskFinished.WakeAll();
-    //WaitForMultipleObjects(m_NumOfTreads, m_pThreadsHandle, true, INFINITE);
+    WaitForThreads(m_NumOfTreads, m_pThreadsHandle);
 
     for(unsigned int i = 0; i < m_NumOfTreads; ++i)
     {

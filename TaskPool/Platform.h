@@ -8,6 +8,7 @@
 
     typedef HANDLE THREAD_HANDLE;
     #define pool_thread_start DWORD WINAPI
+    #define WaitForThreads(NumThreads, ThreadsHandle) WaitForMultipleObjects(NumThreads, ThreadsHandle, true, INFINITE)
 
     inline int AtomicAdd(volatile unsigned int *Point2Var, int NewValue, int OldValue)
     {
@@ -32,7 +33,6 @@
     #else
         #define ASSERT(x) {}
     #endif
-
 #elif __linux__
     #include <pthread.h>
     #include "./utilities/linux/Mutex.h"
@@ -40,6 +40,7 @@
 
     typedef pthread_t THREAD_HANDLE;
     #define pool_thread_start void *
+    #define WaitForThreads(NumThreads, ThreadsHandle) {}
 
     inline int AtomicAdd(volatile unsigned int *Point2Var, int NewValue, int OldValue)
     {
