@@ -48,8 +48,8 @@ void CPool::AddTask(Task *l_pTask)
         m_Task.push(l_pTask);
     m_Mutex.UnLock();
 
-    AtomicAdd(&m_TaskToFinish, m_TaskToFinish + 1, m_TaskToFinish);
-    AtomicAdd(&m_TaskInQueue, m_TaskInQueue + 1, m_TaskInQueue);
+    AtomicCompareAndExange32(&m_TaskToFinish, m_TaskToFinish + 1, m_TaskToFinish);
+    AtomicCompareAndExange32(&m_TaskInQueue, m_TaskInQueue + 1, m_TaskInQueue);
 
     m_CondVar.Wake();
 }
@@ -80,9 +80,9 @@ void CPool::MainThread(void)
             l_pTask = m_Task.pop();
         m_Mutex.UnLock();
 
-        AtomicAdd(&m_TaskInQueue, m_TaskInQueue - 1, m_TaskInQueue);
+        AtomicCompareAndExange32(&m_TaskInQueue, m_TaskInQueue - 1, m_TaskInQueue);
         l_pTask->Function(l_pTask->Params);
-        AtomicAdd(&m_TaskToFinish, m_TaskToFinish - 1, m_TaskToFinish);
+        AtomicCompareAndExange32(&m_TaskToFinish, m_TaskToFinish - 1, m_TaskToFinish);
 
         m_CondVarTaskFinished.Wake();
     }

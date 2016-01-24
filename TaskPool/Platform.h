@@ -2,6 +2,7 @@
 #define _PLATFORMH_
 
 #if _WIN32
+    #include <intrin.h>
     #include <Windows.h>
     #include "utilities\windows\Mutex.h"
     #include "utilities\windows\ConditionVariable.h"
@@ -10,9 +11,9 @@
     #define pool_thread_start DWORD WINAPI
     #define WaitForThreads(NumThreads, ThreadsHandle) WaitForMultipleObjects(NumThreads, ThreadsHandle, true, INFINITE)
 
-    inline int AtomicAdd(volatile unsigned int *Point2Var, int NewValue, int OldValue)
+    inline int AtomicCompareAndExange32(volatile unsigned int *Pointer2Var, int NewValue, int OldValue)
     {
-        return InterlockedCompareExchange(Point2Var, NewValue, OldValue);
+        return _InterlockedCompareExchange((volatile long *) Pointer2Var, NewValue, OldValue);
     }
 
     inline THREAD_HANDLE PoolThreadStart(LPTHREAD_START_ROUTINE l_Function, void *l_Class)
@@ -42,9 +43,9 @@
     #define pool_thread_start void *
     #define WaitForThreads(NumThreads, ThreadsHandle) {}
 
-    inline int AtomicAdd(volatile unsigned int *Point2Var, int NewValue, int OldValue)
+    inline int AtomicCompareAndExange32(volatile unsigned int *Pointer2Var, int NewValue, int OldValue)
     {
-        return __sync_val_compare_and_swap(Point2Var, OldValue, NewValue);
+        return __sync_val_compare_and_swap(Pointer2Var, OldValue, NewValue);
     }
 
     inline THREAD_HANDLE PoolThreadStart(void * (* l_Function)(void *), void *l_Class)
