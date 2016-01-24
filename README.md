@@ -1,23 +1,23 @@
 # ThreadPool
 
-A simple cross-platform, windows and linux, thread pool.
+A simple cross-platform, Windows and Linux, thread pool.
 
 
 Task information:
 ```
 typedef struct Task
 {
-    unsigned int ID;                // Not used       
-    TaskPriority Priority;          // Low, Normal, Hight
+    unsigned int ID;                // Not used, it could be used as a friendly ID       
+    TaskPriority Priority;          // Low, Normal, High
 
     void *Params;                   // Task Params
     Function2Execute Function;      // Function that has to be executed (entry_point)
-    struct Task *NextTask;          // For the tasks list, don't do nothing with it
+    struct Task *NextTask;          // For the task list, don't do nothing with it
 } Task, *PTask;
 ```
 
-TaskParams, small templated class that allows you to pass any kind of information we need to the executed function.
-For now only allow a maxim of 4 different type of parameters, but if you need more add a new type and create an new constructor.
+TaskParams, a small template class that allows us to pass any kind of information we need to the executed function.
+For now only allows a maxim of 4 different types of parameters, but if you need more add a new type and create a new constructor.
 ```
 template <class T1, class T2 = T1, class T3 = T1, class T4 = T1> struct TaskParams
 {
@@ -63,7 +63,7 @@ CPool l_TaskPool;       // Create a pool instance
 l_TaskPool.Init(4);     // Start the pool with 4 threads
 ```
 
-Submit jobs
+Submit taks
 ```
     test_1 te1;         // Your class instance
     Task t1 = { 0 };    // Task structure instance
@@ -80,7 +80,8 @@ Submit jobs
     l_TaskPool.AddTask(&t1);    // Submit task to queue
     l_TaskPool.AddTask(&t3);    // Submit task to queue
 
-    l_TaskPool.WaitForWorkers(); // Wait until no job remain in the queue
+    l_TaskPool.WaitForWorkers(); // Wait until all jobs in the queue are executed
+    // if you have to run them several times tasks have to be resubmitted (no auto queueing)
 ```
 
 
